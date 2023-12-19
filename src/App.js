@@ -48,6 +48,8 @@ const tempWatchedData = [
   },
 ];
 
+localStorage.setItem("watched", JSON.stringify(tempWatchedData));
+
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
@@ -92,15 +94,19 @@ function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
-const KEY = "f84fc31d";
+const KEY = "f0f44d84";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+
+  const [watched, setWatched] = useState(function () {
+    const storedValue = localStorage.getItem("watched");
+    return JSON.parse(storedValue);
+  });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -120,6 +126,13 @@ export default function App() {
 
   useEffect(
     function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched]
+  );
+
+  useEffect(
+    function () {
       const controller = new AbortController();
 
       async function fetchMovies() {
@@ -132,7 +145,7 @@ export default function App() {
           );
 
           if (!res.ok)
-            throw new Error("Something went wrong with fetching movies");
+            throw new Error("Something went wrong with fetching movies.");
           const data = await res.json();
           if (data.Error) throw new Error(data.Error);
           setMovies(data.Search);
